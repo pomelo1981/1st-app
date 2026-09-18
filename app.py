@@ -219,8 +219,8 @@ with tab2:
             st.error(f"❌ **1. 진폭 (오답):** 입력값 `{fmt_num(user_amp)}`은(는) 오답입니다.")
             st.warning(f"""
             **💡 오답 원인 및 해설:**
-            - 삼각함수 $y = a \cdot f(bx) + d$에서 진폭은 삼각함수의 앞 계수인 **$\vert{}a\vert{}$**로 결정됩니다.
-            - 이 문제에서 계수 $a = {fmt_num(q_a)}$이므로 진폭은 **{fmt_num(ans_amp)}**입니다.
+            - 삼각함수 y = a · f(bx) + d에서 진폭은 삼각함수의 앞 계수인 **|a|**로 결정됩니다.
+            - 이 문제에서 계수 a = {fmt_num(q_a)}이므로 진폭은 **{fmt_num(ans_amp)}**입니다.
             """)
 
         # 2. 주기 검증 및 해설
@@ -232,7 +232,7 @@ with tab2:
             st.warning(f"""
             **💡 오답 원인 및 해설:**
             - sin과 cos 함수 기본 주기는 2π이며, x 앞에 계수 b가 붙을 경우 주기는 **2π / |b|**가 됩니다.
-            - 이 문제에서 x의 계수 $b = {fmt_num(q_b)}$이므로, 주기 공식은 $2\pi / {fmt_num(q_b)} = {fmt_num(ans_period_coeff)}\pi$ 입니다.
+            - 이 문제에서 x의 계수 b = {fmt_num(q_b)}이므로, 주기 공식은 2π / {fmt_num(q_b)} = {fmt_num(ans_period_coeff)}π 입니다.
             - 따라서 π 앞의 계수는 **{fmt_num(ans_period_coeff)}**이어야 합니다.
             """)
 
