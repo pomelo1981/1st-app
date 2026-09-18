@@ -13,6 +13,47 @@ st.set_page_config(
 # 한글 및 마이너스 기호 깨짐 방지
 plt.rcParams['axes.unicode_minus'] = False
 
+# ==========================================
+# 숫자를 깔끔한 수식 텍스트로 변환하는 함수
+# ==========================================
+def fmt_num(val):
+    """정수면 소수점 제거, 소수면 필요 소수점만 표시"""
+    val = round(val, 2)
+    if val == int(val):
+        return f"{int(val)}"
+    return f"{val}"
+
+def make_formula_str(func, a, b, c, d):
+    """삼각함수를 깔끔한 LaTeX 수식 문장으로 조합 (계수 1은 그대로 표시)"""
+    a_str = fmt_num(a)
+
+    # x-c (x축 평행이동) 처리
+    b_str = fmt_num(b)
+    if c == 0:
+        inner_str = f"{b_str}x"
+    else:
+        c_val = fmt_num(abs(c))
+        c_sign = "-" if c > 0 else "+"
+        c_text = f"\\pi" if c_val == "1" else f"{c_val}\\pi"
+        
+        if b == 1:
+            inner_str = f"x {c_sign} {c_text}"
+        elif b == -1:
+            inner_str = f"-x {c_sign} {c_text}"
+        else:
+            inner_str = f"{b_str}(x {c_sign} {c_text})"
+
+    # d (y축 평행이동) 처리
+    if d == 0:
+        d_str = ""
+    elif d > 0:
+        d_str = f" + {fmt_num(d)}"
+    else:
+        d_str = f" - {fmt_num(abs(d))}"
+
+    return f"y = {a_str} \\cdot \\{func}({inner_str}){d_str}"
+
+
 st.title("📐 고등학생을 위한 삼각함수 학습 & 퀴즈 인터랙티브 웹")
 st.write("개념 학습 탭에서 원하는 값을 직접 입력해 그래프를 관찰하고, 퀴즈 탭에서 직접 실력을 점검해 보세요!")
 
@@ -31,45 +72,48 @@ with tab1:
         ["Sine (sin)", "Cosine (cos)", "Tangent (tan)"]
     )
 
-    # 2. 숫자 입력 방식(st.number_input) 파라미터 설정
+    # 2. 파라미터 입력
     st.sidebar.subheader("파라미터 입력: $y = a \\cdot f(b(x - c)) + d$")
 
-    a = st.sidebar.number_input("진폭/확대 (a)", value=1.0, step=0.1, format="%.2f", key="a_input")
-    b = st.sidebar.number_input("주기 조절 (b)", value=1.0, step=0.1, format="%.2f", key="b_input")
-    c = st.sidebar.number_input("x축 평행이동 (c: $\\pi$ 단위)", value=0.0, step=0.25, format="%.2f", key="c_input")
-    d = st.sidebar.number_input("y축 평행이동 (d)", value=0.0, step=0.5, format="%.2f", key="d_input")
+    a = st.sidebar.number_input("진폭/확대 (a)", value=1.0, step=0.5, key="a_input")
+    b = st.sidebar.number_input("주기 조절 (b)", value=1.0, step=0.5, key="b_input")
+    c = st.sidebar.number_input("x축 평행이동 (c: $\\pi$ 단위)", value=0.0, step=0.25, key="c_input")
+    d = st.sidebar.number_input("y축 평행이동 (d)", value=0.0, step=0.5, key="d_input")
 
     # x 범위 설정 (-2π ~ 2π)
     x = np.linspace(-2 * np.pi, 2 * np.pi, 1000)
 
-    # 함수 선택에 따른 처리
-    if "sin" in func_choice.lower():
+    # 선택한 함수명 정제
+    func_name = "sin" if "sin" in func_choice.lower() else ("cos" if "cos" in func_choice.lower() else "tan")
+
+    # 수식 라텍스 문자열 생성
+    latex_formula = make_formula_str(func_name, a, b, c, d)
+
+    # 삼각함수 계산
+    if func_name == "sin":
         y_base = np.sin(x)
         y_mod = a * np.sin(b * (x - c * np.pi)) + d
-        title_str = f"$y = {a:.2f} \\cdot \\sin({b:.2f}(x - {c:.2f}\\pi)) + {d:.2f}$"
-        period = f"{2/abs(b):.2f} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
-        amplitude = f"{abs(a):.2f}"
-    elif "cos" in func_choice.lower():
+        period = f"{fmt_num(2/abs(b))} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
+        amplitude = f"{fmt_num(abs(a))}"
+    elif func_name == "cos":
         y_base = np.cos(x)
         y_mod = a * np.cos(b * (x - c * np.pi)) + d
-        title_str = f"$y = {a:.2f} \\cdot \\cos({b:.2f}(x - {c:.2f}\\pi)) + {d:.2f}$"
-        period = f"{2/abs(b):.2f} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
-        amplitude = f"{abs(a):.2f}"
+        period = f"{fmt_num(2/abs(b))} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
+        amplitude = f"{fmt_num(abs(a))}"
     else:
-        # 탄젠트 함수 불연속점 처리
         y_base = np.tan(x)
         y_mod = a * np.tan(b * (x - c * np.pi)) + d
         y_base[np.abs(y_base) > 10] = np.nan
         y_mod[np.abs(y_mod) > 10] = np.nan
-        title_str = f"$y = {a:.2f} \\cdot \\tan({b:.2f}(x - {c:.2f}\\pi)) + {d:.2f}$"
-        period = f"{1/abs(b):.2f} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
+        period = f"{fmt_num(1/abs(b))} $\\pi$" if b != 0 else "정의되지 않음 (b=0)"
         amplitude = "없음 (최대/최소값 없음)"
 
     # 레이아웃 분할
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader(f"📊 그래프: {title_str}")
+        st.subheader("📊 그래프")
+        st.latex(latex_formula)  # 대표 수식 표시
         
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.plot(x, y_base, label="기본형 $y=f(x)$", color="gray", linestyle="--", alpha=0.6)
@@ -102,12 +146,11 @@ with tab1:
         st.markdown("### 📝 수식 핵심 규칙")
         st.latex(r"y = a \cdot f(b(x - c)) + d")
         
-        # f-string 내부에서 문법 오류를 일으키던 라텍스 기호를 안전한 일반 텍스트로 수정
         st.markdown(f"""
-        - **a = {a}**: 진폭 조절 (절댓값 |a|)
-        - **b = {b}**: 주기 조절 (주기 = 기본주기 / |b|)
-        - **c = {c}**: x축 평행이동 (+{c}π 만큼)
-        - **d = {d}**: y축 평행이동 (+{d} 만큼)
+        - **a = {fmt_num(a)}**: 진폭 조절 (절댓값 |a|)
+        - **b = {fmt_num(b)}**: 주기 조절 (주기 = 기본주기 / |b|)
+        - **c = {fmt_num(c)}**: x축 평행이동 (+{fmt_num(c)}π 만큼)
+        - **d = {fmt_num(d)}**: y축 평행이동 (+{fmt_num(d)} 만큼)
         """)
 
 # ==========================================
@@ -130,8 +173,9 @@ with tab2:
     q_func = st.session_state.quiz_func
 
     # 문제 출력
-    d_sign = f"+ {q_d}" if q_d > 0 else f"- {abs(q_d)}"
-    st.info(f"### ❓ 문제: 함수 $y = {q_a} \\cdot \\{q_func}({q_b}x) {d_sign}$ 의 특성을 구하세요.")
+    quiz_formula = make_formula_str(q_func, q_a, q_b, 0, q_d)
+    st.info("### ❓ 문제: 아래 함수 식의 특성을 구하세요.")
+    st.latex(quiz_formula)
 
     col_q1, col_q2, col_q3 = st.columns(3)
     
@@ -169,40 +213,39 @@ with tab2:
 
         # 1. 진폭 검증 및 해설
         if abs(user_amp - ans_amp) < 0.01:
-            st.success(f"✅ **1. 진폭 (정답):** 입력값 `{user_amp}`이(가) 맞습니다!")
+            st.success(f"✅ **1. 진폭 (정답):** 입력값 `{fmt_num(user_amp)}`이(가) 맞습니다!")
         else:
             correct_all = False
-            st.error(f"❌ **1. 진폭 (오답):** 입력값 `{user_amp}`은(는) 오답입니다.")
+            st.error(f"❌ **1. 진폭 (오답):** 입력값 `{fmt_num(user_amp)}`은(는) 오답입니다.")
             st.warning(f"""
             **💡 오답 원인 및 해설:**
-            - 삼각함수 y = a · f(bx) + d에서 진폭은 삼각함수의 앞 계수인 **|a|**로 결정됩니다.
-            - 이 문제에서 계수 a = {q_a}이므로 진폭은 **{ans_amp}**입니다.
-            - (입력하신 값 `{user_amp}`은(는) 삼각함수의 진폭 공식 |a|에 맞지 않습니다.)
+            - 삼각함수 $y = a \cdot f(bx) + d$에서 진폭은 삼각함수의 앞 계수인 **$\vert{}a\vert{}$**로 결정됩니다.
+            - 이 문제에서 계수 $a = {fmt_num(q_a)}$이므로 진폭은 **{fmt_num(ans_amp)}**입니다.
             """)
 
         # 2. 주기 검증 및 해설
         if abs(user_period_coeff - ans_period_coeff) < 0.01:
-            st.success(f"✅ **2. 주기 (정답):** 입력값 `{user_period_coeff}`π가 맞습니다!")
+            st.success(f"✅ **2. 주기 (정답):** 입력값 `{fmt_num(user_period_coeff)}`π가 맞습니다!")
         else:
             correct_all = False
-            st.error(f"❌ **2. 주기 (오답):** 입력값 `{user_period_coeff}`π은(는) 오답입니다.")
+            st.error(f"❌ **2. 주기 (오답):** 입력값 `{fmt_num(user_period_coeff)}`π은(는) 오답입니다.")
             st.warning(f"""
             **💡 오답 원인 및 해설:**
             - sin과 cos 함수 기본 주기는 2π이며, x 앞에 계수 b가 붙을 경우 주기는 **2π / |b|**가 됩니다.
-            - 이 문제에서 x의 계수 b = {q_b}이므로, 주기 공식은 2π / {q_b} = {ans_period_coeff:.2f}π 입니다.
-            - 따라서 π 앞의 계수는 **{ans_period_coeff:.2f}**이어야 합니다.
+            - 이 문제에서 x의 계수 $b = {fmt_num(q_b)}$이므로, 주기 공식은 $2\pi / {fmt_num(q_b)} = {fmt_num(ans_period_coeff)}\pi$ 입니다.
+            - 따라서 π 앞의 계수는 **{fmt_num(ans_period_coeff)}**이어야 합니다.
             """)
 
         # 3. y축 평행이동 검증 및 해설
         if abs(user_d - ans_d) < 0.01:
-            st.success(f"✅ **3. y축 평행이동 (정답):** 입력값 `{user_d}`이(가) 맞습니다!")
+            st.success(f"✅ **3. y축 평행이동 (정답):** 입력값 `{fmt_num(user_d)}`이(가) 맞습니다!")
         else:
             correct_all = False
-            st.error(f"❌ **3. y축 평행이동 (오답):** 입력값 `{user_d}`은(는) 오답입니다.")
+            st.error(f"❌ **3. y축 평행이동 (오답):** 입력값 `{fmt_num(user_d)}`은(는) 오답입니다.")
             st.warning(f"""
             **💡 오답 원인 및 해설:**
             - 수식 뒤에 더해지거나 빼지는 상수항 d는 그래프 전체를 위/아래로 이동시키는 **y축 평행이동량**입니다.
-            - 이 문제에서 식 뒤의 상수는 {d_sign}이므로 y축 방향으로 **{ans_d}**만큼 평행이동한 것입니다.
+            - 이 문제에서 y축 방향 평행이동량은 **{fmt_num(ans_d)}**입니다.
             """)
 
         # 모두 맞췄을 때 이벤트
