@@ -102,8 +102,8 @@ with tab1:
         st.markdown("### 📝 수식 핵심 규칙")
         st.latex(r"y = a \cdot f(b(x - c)) + d")
         st.markdown(f"""
-        - **$a = {a}$**: 진폭 조절 ($|a|$)
-        - **$b = {b}$**: 주기 조절 (주기 = 기본주기 / $|b|$)
+        - **$a = {a}$**: 진폭 조절 ($\vert{}a\vert{}$)
+        - **$b = {b}$**: 주기 조절 (주기 = 기본주기 / $\vert{}b\vert{}$)
         - **$c = {c}$**: x축 평행이동 ($+{c}\\pi$ 만큼)
         - **$d = {d}$**: y축 평행이동 ($+{d}$ 만큼)
         """)
@@ -148,29 +148,7 @@ with tab2:
     col_btn1, col_btn2 = st.columns([1, 4])
     
     with col_btn1:
-        if st.button("정답 확인 🎯"):
-            correct = True
-            
-            if abs(user_amp - ans_amp) < 0.01:
-                st.success("1. 진폭 정답입니다! 🎉")
-            else:
-                st.error(f"1. 진폭 오답입니다. (정답: {ans_amp})")
-                correct = False
-
-            if abs(user_period_coeff - ans_period_coeff) < 0.01:
-                st.success(f"2. 주기 정답입니다! ({ans_period_coeff:.2f}$\\pi$) 🎉")
-            else:
-                st.error(f"2. 주기 오답입니다. (정답: {ans_period_coeff:.2f}$\\pi$)")
-                correct = False
-
-            if abs(user_d - ans_d) < 0.01:
-                st.success("3. y축 평행이동 정답입니다! 🎉")
-            else:
-                st.error(f"3. y축 평행이동 오답입니다. (정답: {ans_d})")
-                correct = False
-
-            if correct:
-                st.balloons()
+        submit_btn = st.button("정답 확인 🎯")
 
     with col_btn2:
         if st.button("새 문제 생성 🔄"):
@@ -179,3 +157,53 @@ with tab2:
             st.session_state.quiz_d = random.choice([-3, -2, -1, 1, 2, 3])
             st.session_state.quiz_func = random.choice(["sin", "cos"])
             st.rerun()
+
+    # 정답 제출 및 채점 결과/해설 출력
+    if submit_btn:
+        st.markdown("---")
+        st.markdown("### 📋 채점 결과 및 상세 해설")
+
+        correct_all = True
+
+        # 1. 진폭 검증 및 해설
+        if abs(user_amp - ans_amp) < 0.01:
+            st.success(f"✅ **1. 진폭 (정답):** 입력값 `{user_amp}`이(가) 맞습니다!")
+        else:
+            correct_all = False
+            st.error(f"❌ **1. 진폭 (오답):** 입력값 `{user_amp}`은(는) 오답입니다.")
+            st.warning(f"""
+            **💡 오답 원인 및 해설:**
+            - 삼각함수 $y = a \cdot f(bx) + d$에서 진폭은 삼각함수의 앞 계수인 **$\vert{}a\vert{}$**로 결정됩니다.
+            - 이 문제에서 계수 $a = {q_a}$이므로 진폭은 **${ans_amp}$**입니다.
+            - (입력하신 값 `{user_amp}`은(는) 삼각함수의 진폭 공식 $\vert{}a\vert{}$에 맞지 않습니다.)
+            """)
+
+        # 2. 주기 검증 및 해설
+        if abs(user_period_coeff - ans_period_coeff) < 0.01:
+            st.success(f"✅ **2. 주기 (정답):** 입력값 `{user_period_coeff}`$\pi$가 맞습니다!")
+        else:
+            correct_all = False
+            st.error(f"❌ **2. 주기 (오답):** 입력값 `{user_period_coeff}`$\pi$은(는) 오답입니다.")
+            st.warning(f"""
+            **💡 오답 원인 및 해설:**
+            - $\sin$과 $\cos$ 함수 기본 주기는 $2\pi$이며, $x$ 앞에 계수 $b$가 붙을 경우 주기는 **$\\frac{{2\pi}}{{\vert{}b\vert{}}}$**가 됩니다.
+            - 이 문제에서 $x$의 계수 $b = {q_b}$이므로, 주기 공식은 $\\frac{{2\pi}}{{{q_b}}} = {ans_period_coeff:.2f}\pi$ 입니다.
+            - 따라서 $\pi$ 앞의 계수는 **${ans_period_coeff:.2f}$**이어야 합니다.
+            """)
+
+        # 3. y축 평행이동 검증 및 해설
+        if abs(user_d - ans_d) < 0.01:
+            st.success(f"✅ **3. y축 평행이동 (정답):** 입력값 `{user_d}`이(가) 맞습니다!")
+        else:
+            correct_all = False
+            st.error(f"❌ **3. y축 평행이동 (오답):** 입력값 `{user_d}`은(는) 오답입니다.")
+            st.warning(f"""
+            **💡 오답 원인 및 해설:**
+            - 수식 뒤에 더해지거나 빼지는 상수항 $d$는 그래프 전체를 위/아래로 이동시키는 **$y$축 평행이동량**입니다.
+            - 이 문제에서 식 뒤의 상수는 ${d_sign}$이므로 $y$축 방향으로 **${ans_d}$**만큼 평행이동한 것입니다.
+            """)
+
+        # 모두 맞췄을 때 이벤트
+        if correct_all:
+            st.balloons()
+            st.success("🎉 축하합니다! 모든 항목을 정확하게 계산하셨습니다.")
