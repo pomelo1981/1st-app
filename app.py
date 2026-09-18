@@ -5,7 +5,7 @@ import random
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="고등 수학: 삼각함수 학습 및 퀴즈",
+    page_title="한눈에 보는 삼각함수 그래프",
     page_icon="📐",
     layout="wide"
 )
@@ -54,8 +54,9 @@ def make_formula_str(func, a, b, c, d):
     return f"y = {a_str} \\cdot \\{func}({inner_str}){d_str}"
 
 
-st.title("📐 고등학생을 위한 삼각함수 학습 & 퀴즈 인터랙티브 웹")
-st.write("개념 학습 탭에서 원하는 값을 직접 입력해 그래프를 관찰하고, 퀴즈 탭에서 직접 실력을 점검해 보세요!")
+# 메인 제목 변경
+st.title("📈 삼각함수 마스터: 그래프 시각화 & 실력 점검 퀴즈")
+st.write("개념 학습 탭에서 파라미터를 조절하며 그래프 변화를 확인하고, 퀴즈 탭에서 직접 실력을 점검해 보세요!")
 
 # 탭 구성: 개념 학습 / 퀴즈
 tab1, tab2 = st.tabs(["📊 개념 학습 & 그래프 시각화", "🧩 삼각함수 실력 점검 퀴즈"])
