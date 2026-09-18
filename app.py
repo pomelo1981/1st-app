@@ -114,15 +114,10 @@ with tab1:
     with col1:
         st.subheader("📊 그래프")
         
-        # 식 크기를 크게 표시 (HTML font-size 활용)
-        st.markdown(
-            f"<h2 style='text-align: center; color: #333333;'>${latex_formula}$</h2>", 
-            unsafe_allow_html=True
-        )
-        st.write("") # 약간의 여백
+        # \Large 명령어를 사용하여 수식 크기를 큼직하게 확대 렌더링
+        st.latex(rf"\Large {latex_formula}")
         
         fig, ax = plt.subplots(figsize=(10, 5))
-        # 그래프 범례 한글 깨짐 방지를 위해 LaTeX 수식 표기 사용
         ax.plot(x, y_base, label=r"Base $y=f(x)$", color="gray", linestyle="--", alpha=0.6)
         ax.plot(x, y_mod, label=r"Modified $y=g(x)$", color="#007ACC", linewidth=2.5)
         
@@ -183,12 +178,8 @@ with tab2:
     quiz_formula = make_formula_str(q_func, q_a, q_b, 0, q_d)
     st.info("### ❓ 문제: 아래 함수 식의 특성을 구하세요.")
     
-    # 퀴즈 식 크기도 크게 변경
-    st.markdown(
-        f"<h2 style='text-align: center; color: #1E3A8A;'>${quiz_formula}$</h2>", 
-        unsafe_allow_html=True
-    )
-    st.write("")
+    # 퀴즈 수식 크기도 큼직하게 변경
+    st.latex(rf"\Large {quiz_formula}")
 
     col_q1, col_q2, col_q3 = st.columns(3)
     
